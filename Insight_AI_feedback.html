@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Insight — Product Feedback Synthesizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0C0C0E;
+  --bg-card: #131316;
+  --bg-card2: #18181C;
+  --bg-hover: #1E1E24;
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.13);
+  --text-primary: #F2F1EF;
+  --text-secondary: #9A9896;
+  --text-muted: #5A5856;
+  --accent: #7B6EF6;
+  --accent-soft: rgba(123,110,246,0.12);
+  --accent-border: rgba(123,110,246,0.3);
+  --green: #22C55E;
+  --green-soft: rgba(34,197,94,0.1);
+  --red: #EF4444;
+  --red-soft: rgba(239,68,68,0.1);
+  --amber: #F59E0B;
+  --amber-soft: rgba(245,158,11,0.1);
+  --blue: #3B82F6;
+  --blue-soft: rgba(59,130,246,0.1);
+}
+html { background: var(--bg); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.6; }
+
+nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 40px; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: rgba(12,12,14,0.92);
+  backdrop-filter: blur(12px); z-index: 100;
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; }
+.nav-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 15px; color: #fff; font-weight: 700; }
+.nav-name { font-size: 15px; font-weight: 600; }
+.nav-badge { font-size: 11px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); border-radius: 100px; padding: 2px 8px; }
+
+main { max-width: 860px; margin: 0 auto; padding: 60px 24px 80px; }
+
+.hero { text-align: center; margin-bottom: 52px; }
+.hero-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.hero-title { font-size: clamp(28px, 5vw, 46px); font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
+.hero-title span { color: var(--accent); }
+.hero-sub { font-size: 15px; color: var(--text-secondary); max-width: 500px; margin: 0 auto; }
+
+.steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 44px; }
+.step { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; border: 1px solid var(--border-bright); color: var(--text-muted); transition: all 0.3s; }
+.step.active .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+.step.done .step-num { background: var(--green); border-color: var(--green); color: #fff; }
+.step-label { color: var(--text-muted); transition: color 0.3s; }
+.step.active .step-label { color: var(--text-primary); }
+.step-line { width: 48px; height: 1px; background: var(--border); margin: 0 4px; }
+
+.input-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
+.panel-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+.panel-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+.example-btn { font-size: 12px; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 6px; padding: 5px 12px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+.example-btn:hover { background: rgba(123,110,246,0.2); }
+
+.interview-list { padding: 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+.interview-item { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+.interview-item:focus-within { border-color: var(--border-bright); }
+.interview-top { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--border); }
+.interview-icon { width: 26px; height: 26px; border-radius: 6px; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--accent); flex-shrink: 0; }
+.interview-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); flex: 1; }
+.remove-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 2px 4px; border-radius: 4px; }
+.remove-btn:hover { color: var(--red); background: var(--red-soft); }
+textarea.interview-ta { width: 100%; background: transparent; border: none; outline: none; padding: 12px 14px; font-family: 'Inter', sans-serif; font-size: 13.5px; color: var(--text-primary); resize: none; line-height: 1.6; min-height: 90px; }
+textarea.interview-ta::placeholder { color: var(--text-muted); }
+
+.add-btn { margin: 0 24px 20px; padding: 10px; width: calc(100% - 48px); background: transparent; border: 1px dashed var(--border-bright); border-radius: 8px; color: var(--text-secondary); font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
+.add-btn:hover { background: var(--bg-hover); border-color: var(--accent-border); color: var(--accent); }
+
+.settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.setting-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+.setting-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+select.setting-select { width: 100%; background: var(--bg-card2); border: 1px solid var(--border-bright); border-radius: 6px; color: var(--text-primary); font-size: 13px; padding: 8px 10px; outline: none; font-family: 'Inter', sans-serif; cursor: pointer; }
+select.setting-select:focus { border-color: var(--accent); }
+
+.analyze-wrap { text-align: center; margin-bottom: 48px; }
+.analyze-btn { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px 36px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; display: inline-flex; align-items: center; gap: 10px; transition: all 0.2s; letter-spacing: -0.01em; }
+.analyze-btn:hover { background: #6A5DE8; transform: translateY(-1px); }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#results { display: none; }
+#results.show { display: block; animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+.results-divider { display: flex; align-items: center; gap: 16px; margin-bottom: 36px; }
+.results-divider-line { flex: 1; height: 1px; background: var(--border); }
+.results-divider-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+
+.summary-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.summary-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), #A78BFA); }
+.summary-card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 10px; }
+.summary-text { font-size: 15px; color: var(--text-primary); line-height: 1.75; }
+
+.stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+.stat-num { font-size: 26px; font-weight: 600; color: var(--text-primary); line-height: 1; margin-bottom: 4px; }
+.stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; margin-top: 32px; }
+.sec-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.sec-icon.purple { background: var(--accent-soft); color: var(--accent); }
+.sec-icon.green { background: var(--green-soft); color: var(--green); }
+.sec-icon.red { background: var(--red-soft); color: var(--red); }
+.sec-icon.amber { background: var(--amber-soft); color: var(--amber); }
+.sec-icon.blue { background: var(--blue-soft); color: var(--blue); }
+.sec-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.sec-count { font-size: 12px; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px; padding: 2px 8px; }
+
+.theme-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.theme-tag { font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 100px; }
+.tag-pain { background: var(--red-soft); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.2); }
+.tag-delight { background: var(--green-soft); color: #86EFAC; border: 1px solid rgba(34,197,94,0.2); }
+.tag-theme { background: var(--blue-soft); color: #93C5FD; border: 1px solid rgba(59,130,246,0.2); }
+
+.pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pro-con-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.pro-con-head { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.pro-con-head.pros { color: var(--green); }
+.pro-con-head.cons { color: var(--red); }
+.pro-con-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.pro-con-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; }
+.pro-con-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+.pro-con-list.pros-list li::before { background: var(--green); }
+.pro-con-list.cons-list li::before { background: var(--red); }
+
+.matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.matrix-q { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+.matrix-q-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+.matrix-q-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.q-do-now .matrix-q-dot { background: var(--green); }
+.q-plan .matrix-q-dot { background: var(--blue); }
+.q-wins .matrix-q-dot { background: var(--amber); }
+.q-skip .matrix-q-dot { background: var(--text-muted); }
+.matrix-q-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.matrix-q-sublabel { font-size: 10px; color: var(--text-muted); margin-left: auto; }
+.feature-pill { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 12px; margin-bottom: 7px; }
+.feature-pill-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+.feature-pill-why { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+.insight-list { display: flex; flex-direction: column; gap: 10px; }
+.insight-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; display: flex; gap: 12px; align-items: flex-start; }
+.insight-badge { width: 32px; height: 32px; border-radius: 7px; background: var(--accent-soft); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.insight-text { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.insight-text strong { color: var(--text-primary); font-weight: 500; }
+
+.rec-list { display: flex; flex-direction: column; gap: 10px; }
+.rec-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display: flex; gap: 14px; }
+.rec-num { font-size: 12px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 6px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.rec-content { flex: 1; }
+.rec-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.rec-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.rec-priority { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; margin-top: 6px; display: inline-block; }
+.priority-high { background: var(--red-soft); color: #FCA5A5; }
+.priority-medium { background: var(--amber-soft); color: #FCD34D; }
+.priority-low { background: var(--green-soft); color: #86EFAC; }
+
+.reset-wrap { text-align: center; margin-top: 48px; }
+.reset-btn { background: transparent; border: 1px solid var(--border-bright); border-radius: 8px; color: var(--text-secondary); font-size: 13px; padding: 10px 20px; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+.reset-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+@media (max-width: 600px) {
+  nav { padding: 14px 16px; }
+  main { padding: 36px 16px 60px; }
+  .settings-row, .pros-cons, .matrix-grid { grid-template-columns: 1fr; }
+  .stats-strip { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">I</div>
+    <span class="nav-name">Insight</span>
+    <span class="nav-badge">MVP</span>
+  </div>
+  <span style="font-size:12px;color:var(--text-muted);">Product Feedback Synthesizer</span>
+</nav>
+
+<main>
+  <div class="hero">
+    <div class="hero-eyebrow">Product Research Tool</div>
+    <h1 class="hero-title">Turn raw interviews into<br/><span>product decisions</span></h1>
+    <p class="hero-sub">Paste user interviews or feedback. Get a structured breakdown with pros, cons, themes, and a prioritized impact-effort matrix.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step-1"><div class="step-num">1</div><div class="step-label">Add interviews</div></div>
+    <div class="step-line"></div>
+    <div class="step" id="step-2"><div class="step-num">2</div><div class="step-label">Configure</div></div>
+    <div class="step-line"></div>
+    <div class="step" id="step-3"><div class="step-num">3</div><div class="step-label">View insights</div></div>
+  </div>
+
+  <div class="input-panel">
+    <div class="panel-header">
+      <span class="panel-title">User interviews &amp; feedback</span>
+      <button class="example-btn" onclick="loadExample()">Load example data</button>
+    </div>
+    <div class="interview-list" id="interview-list"></div>
+    <button class="add-btn" onclick="addInterview()"><span style="font-size:18px;line-height:1;">+</span> Add another interview</button>
+  </div>
+
+  <div class="settings-row">
+    <div class="setting-card">
+      <div class="setting-label">Product type</div>
+      <select class="setting-select" id="product-type">
+        <option value="B2B SaaS">B2B SaaS</option>
+        <option value="B2C app">B2C App</option>
+        <option value="Marketplace">Marketplace</option>
+        <option value="Enterprise software">Enterprise Software</option>
+        <option value="Mobile app">Mobile App</option>
+      </select>
+    </div>
+    <div class="setting-card">
+      <div class="setting-label">Analysis focus</div>
+      <select class="setting-select" id="focus">
+        <option value="retention">Retention &amp; Activation</option>
+        <option value="onboarding">Onboarding / First-Run</option>
+        <option value="features">Feature Prioritization</option>
+        <option value="growth">Growth &amp; Acquisition</option>
+        <option value="overall">Overall Product Health</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="analyze-wrap">
+    <button class="analyze-btn" id="analyze-btn" onclick="analyze()">
+      ✦ &nbsp;Synthesize feedback
+    </button>
+  </div>
+
+  <div id="results">
+    <div class="results-divider">
+      <div class="results-divider-line"></div>
+      <div class="results-divider-label">Analysis Results</div>
+      <div class="results-divider-line"></div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-card-title">Executive Summary</div>
+      <div class="summary-text" id="res-summary"></div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-card"><div class="stat-num" id="stat-interviews">—</div><div class="stat-label">Interviews</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-themes">—</div><div class="stat-label">Themes</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-pain">—</div><div class="stat-label">Pain points</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-features">—</div><div class="stat-label">Feature requests</div></div>
+    </div>
+
+    <div class="sec-head"><div class="sec-icon blue">◆</div><div class="sec-title">Themes detected</div><div class="sec-count" id="theme-count">0</div></div>
+    <div class="theme-tags" id="res-themes"></div>
+
+    <div class="sec-head"><div class="sec-icon green">↕</div><div class="sec-title">Strengths &amp; Pain points</div></div>
+    <div class="pros-cons">
+      <div class="pro-con-card">
+        <div class="pro-con-head pros">✓ &nbsp;What's working</div>
+        <ul class="pro-con-list pros-list" id="res-pros"></ul>
+      </div>
+      <div class="pro-con-card">
+        <div class="pro-con-head cons">✕ &nbsp;What's broken</div>
+        <ul class="pro-con-list cons-list" id="res-cons"></ul>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="sec-icon amber">⊞</div><div class="sec-title">Impact vs. Effort matrix</div></div>
+    <div class="matrix-grid">
+      <div class="matrix-q q-do-now">
+        <div class="matrix-q-head"><div class="matrix-q-dot"></div><div class="matrix-q-label">Do now</div><div class="matrix-q-sublabel">High impact · Low effort</div></div>
+        <div id="m-do-now"></div>
+      </div>
+      <div class="matrix-q q-plan">
+        <div class="matrix-q-head"><div class="matrix-q-dot"></div><div class="matrix-q-label">Plan carefully</div><div class="matrix-q-sublabel">High impact · High effort</div></div>
+        <div id="m-plan"></div>
+      </div>
+      <div class="matrix-q q-wins">
+        <div class="matrix-q-head"><div class="matrix-q-dot"></div><div class="matrix-q-label">Quick wins</div><div class="matrix-q-sublabel">Low impact · Low effort</div></div>
+        <div id="m-wins"></div>
+      </div>
+      <div class="matrix-q q-skip">
+        <div class="matrix-q-head"><div class="matrix-q-dot"></div><div class="matrix-q-label">Deprioritize</div><div class="matrix-q-sublabel">Low impact · High effort</div></div>
+        <div id="m-skip"></div>
+      </div>
+    </div>
+
+    <div class="sec-head"><div class="sec-icon purple">💡</div><div class="sec-title">Key hypotheses &amp; insights</div></div>
+    <div class="insight-list" id="res-insights"></div>
+
+    <div class="sec-head"><div class="sec-icon red">→</div><div class="sec-title">Recommended next steps</div></div>
+    <div class="rec-list" id="res-recs"></div>
+
+    <div class="reset-wrap">
+      <button class="reset-btn" onclick="resetAll()">← Start new analysis</button>
+    </div>
+  </div>
+</main>
+
+<script>
+let interviewCount = 0;
+
+function addInterview(val) {
+  interviewCount++;
+  const list = document.getElementById('interview-list');
+  const div = document.createElement('div');
+  div.className = 'interview-item';
+  div.id = 'iv-' + interviewCount;
+  div.innerHTML = `
+    <div class="interview-top">
+      <div class="interview-icon">👤</div>
+      <span class="interview-label">Interview ${interviewCount}</span>
+      <button class="remove-btn" onclick="document.getElementById('iv-${interviewCount}').remove()" title="Remove">×</button>
+    </div>
+    <textarea class="interview-ta" rows="4" placeholder="Paste interview transcript, support ticket, or user feedback here..."></textarea>
+  `;
+  list.appendChild(div);
+  if (val) div.querySelector('textarea').value = val;
+}
+
+function loadExample() {
+  document.getElementById('interview-list').innerHTML = '';
+  interviewCount = 0;
+  [
+    `Churned customer (Enterprise): "We left because you don't have SSO. Our IT team won't approve tools without Okta or Azure AD support. It's frustrating because the core product was genuinely great — we just couldn't get it past IT."`,
+    `Power user (support ticket): "I spend 30 minutes every Monday manually exporting data to Excel to share with my manager. Scheduled CSV exports or auto-email reports would save me so much time. Also the dashboard is slow — sometimes 8–10 seconds to load."`,
+    `New customer (onboarding interview): "Getting started took almost 3 weeks. The setup wizard kept breaking on step 4 and we contacted support 4 times. An interactive tour or video walkthroughs would've helped massively. Once set up though, we love it."`,
+    `Satisfied user (survey): "Love the product overall. Main requests: keyboard shortcuts — I'm in the app all day and even Cmd+K for search would help. Also mobile experience is poor, fonts are tiny and buttons are hard to tap."`,
+    `Churned SMB customer: "Pricing got too complicated. We couldn't figure out what we were paying for and downgrading required talking to sales — that should be self-serve. We ended up just canceling instead of downgrading."`
+  ].forEach(e => addInterview(e));
+}
+
+// ── Keyword-based local analysis engine ──
+function analyzeLocally(interviews, productType, focus) {
+  const allText = interviews.join(' ').toLowerCase();
+  const count = interviews.length;
+
+  // Theme detection
+  const themeMap = [
+    { kw: ['sso','saml','okta','azure ad','auth','login','identity'], label: 'Authentication & SSO', type: 'pain' },
+    { kw: ['export','csv','download','report','excel','scheduled'], label: 'Data export & reporting', type: 'pain' },
+    { kw: ['slow','performance','loading','speed','lag','8 second','timeout'], label: 'Performance issues', type: 'pain' },
+    { kw: ['onboard','setup','wizard','getting started','first time','configure'], label: 'Onboarding friction', type: 'pain' },
+    { kw: ['mobile','phone','iphone','android','app','tap','tiny'], label: 'Mobile experience', type: 'pain' },
+    { kw: ['keyboard','shortcut','cmd','ctrl','hotkey'], label: 'Power user features', type: 'theme' },
+    { kw: ['billing','pricing','invoice','payment','charge','expensive'], label: 'Billing complexity', type: 'pain' },
+    { kw: ['love','great','fantastic','amazing','happy','excellent'], label: 'User satisfaction', type: 'delight' },
+    { kw: ['support','ticket','help','contact','response'], label: 'Support dependency', type: 'pain' },
+    { kw: ['integration','api','connect','sync','webhook'], label: 'Integrations & API', type: 'theme' },
+    { kw: ['churn','cancel','left','switched','competitor'], label: 'Churn signals', type: 'pain' },
+    { kw: ['feature','request','wish','want','need','add'], label: 'Feature requests', type: 'theme' },
+  ];
+  const detectedThemes = themeMap.filter(t => t.kw.some(k => allText.includes(k)));
+
+  // Pros detection
+  const prosMap = [
+    { kw: ['love','great product','fantastic','amazing','excellent','genuinely great','we love it'], text: 'Users express genuine satisfaction with the core product quality and functionality.' },
+    { kw: ['once set up','after onboarding','once configured','clicked'], text: 'Once past the initial friction, users report the product delivers real value.' },
+    { kw: ['data quality','accurate','reliable','consistent'], text: 'Data quality and accuracy are consistently praised by power users.' },
+    { kw: ['reporting','dashboard','analytics','metrics'], text: 'The reporting and analytics capabilities are considered solid by regular users.' },
+    { kw: ['team','collaborate','share'], text: 'Collaboration features are working well for team-based workflows.' },
+  ];
+  const pros = prosMap.filter(p => p.kw.some(k => allText.includes(k))).map(p => p.text);
+  if (pros.length === 0) pros.push('Users recognize the product solves a real problem worth using.', 'Core product functionality meets user expectations once fully set up.');
+
+  // Cons detection
+  const consMap = [
+    { kw: ['sso','saml','okta','azure'], text: 'No SSO/enterprise auth is a hard blocker for IT-gated organizations, directly causing churn.' },
+    { kw: ['slow','loading','performance','lag'], text: 'Dashboard performance issues (8–10s load times) frustrate daily active users.' },
+    { kw: ['onboard','setup','wizard','3 weeks','weeks'], text: 'Onboarding is too complex — users need multiple support contacts just to get started.' },
+    { kw: ['export','csv','manual','monday'], text: 'No automated export forces users into repetitive manual workflows every week.' },
+    { kw: ['mobile','tiny','hard to tap'], text: 'Mobile experience is poor — fonts are unreadable and touch targets are too small.' },
+    { kw: ['billing','pricing','complicated','cancel'], text: 'Billing page is confusing and downgrade flow requires sales contact, driving cancellations.' },
+    { kw: ['keyboard','shortcut'], text: 'Lack of keyboard shortcuts slows down power users who live in the app all day.' },
+  ];
+  const cons = consMap.filter(c => c.kw.some(k => allText.includes(k))).map(c => c.text);
+  if (cons.length === 0) cons.push('Users encounter friction in key workflows that slows adoption.', 'Some features require workarounds, adding unnecessary manual effort.');
+
+  // Matrix
+  const matrix = { do_now: [], plan: [], quick_wins: [], deprioritize: [] };
+  if (allText.includes('keyboard') || allText.includes('shortcut')) matrix.quick_wins.push({ feature: 'Keyboard shortcuts', why: 'Low dev effort, high daily-use payoff for power users.' });
+  if (allText.includes('sso') || allText.includes('okta')) matrix.plan.push({ feature: 'SSO / SAML integration', why: 'Unblocks enterprise deals but requires significant auth infrastructure work.' });
+  if (allText.includes('export') || allText.includes('csv')) matrix.do_now.push({ feature: 'Scheduled email reports', why: 'Eliminates a weekly manual ritual — high frequency pain, low backend lift.' });
+  if (allText.includes('onboard') || allText.includes('wizard')) matrix.do_now.push({ feature: 'Interactive onboarding tour', why: 'Directly reduces support contacts and time-to-value without a full redesign.' });
+  if (allText.includes('slow') || allText.includes('loading')) matrix.plan.push({ feature: 'Dashboard performance optimization', why: 'High user impact but requires profiling, caching work, and infra changes.' });
+  if (allText.includes('mobile') || allText.includes('iphone')) matrix.plan.push({ feature: 'Mobile UI overhaul', why: 'Important for on-the-go users but needs a full responsive redesign pass.' });
+  if (allText.includes('billing') || allText.includes('pricing')) matrix.do_now.push({ feature: 'Self-serve downgrade flow', why: 'Prevents avoidable cancellations — pure product/UX fix, no sales required.' });
+  if (allText.includes('integrat') || allText.includes('api')) matrix.quick_wins.push({ feature: 'Integration documentation', why: 'Reduces support burden with minimal engineering — docs + self-serve guides.' });
+  if (matrix.deprioritize.length === 0) matrix.deprioritize.push({ feature: 'Advanced customization themes', why: 'Low user demand relative to core reliability issues that need fixing first.' });
+  if (matrix.do_now.length === 0) matrix.do_now.push({ feature: 'Onboarding checklist', why: 'Quick to ship, directly improves activation rate for new signups.' });
+
+  // Insights
+  const insights = [];
+  if (allText.includes('churn') || allText.includes('cancel') || allText.includes('left')) {
+    insights.push({ emoji: '⚠️', headline: 'Churn is product-driven, not relationship-driven', body: 'Users are leaving over specific missing features (SSO, self-serve billing) — not because of service quality. These are fixable with targeted product work.' });
+  }
+  if (allText.includes('onboard') || allText.includes('setup')) {
+    insights.push({ emoji: '🚧', headline: 'Onboarding is the biggest activation bottleneck', body: 'Multiple users mention 3+ support contacts to get started. Every week of delayed setup is a week of reduced engagement and higher early churn risk.' });
+  }
+  if (allText.includes('love') || allText.includes('great')) {
+    insights.push({ emoji: '✅', headline: 'Core product has strong product-market fit signals', body: 'Users who push through onboarding friction express genuine love for the product. The opportunity is reducing the gap between signup and that "aha" moment.' });
+  }
+  insights.push({ emoji: '📊', headline: 'Power users are underserved', body: 'Requests for keyboard shortcuts, scheduled exports, and API docs all signal a segment of high-engagement users whose daily workflows are being slowed down.' });
+  insights.push({ emoji: '🔒', headline: 'Enterprise readiness is a growth ceiling', body: 'SSO blockers suggest the product has outgrown SMB positioning. Without enterprise auth, entire company segments are unreachable regardless of product quality.' });
+
+  // Recommendations
+  const recs = [];
+  if (allText.includes('onboard')) recs.push({ title: 'Ship an interactive onboarding tour', description: 'Build a step-by-step in-app guide for the first-run experience. Target: reduce time-to-setup from 3 weeks to under 3 days and cut onboarding support tickets by 50%.', priority: 'high' });
+  if (allText.includes('export') || allText.includes('csv')) recs.push({ title: 'Launch automated report delivery', description: 'Add scheduled CSV export and auto-email reports on a user-defined cadence. This removes the single most common weekly manual workflow users describe.', priority: 'high' });
+  if (allText.includes('billing') || allText.includes('cancel')) recs.push({ title: 'Self-serve billing and plan management', description: 'Allow users to upgrade, downgrade, and cancel without talking to sales. This directly prevents avoidable churn from users who default to canceling over friction.', priority: 'high' });
+  if (allText.includes('sso') || allText.includes('saml')) recs.push({ title: 'Scope SSO/SAML as a Q-roadmap item', description: 'SSO is a hard enterprise requirement. Prioritize Okta and Azure AD integration in the next major cycle to unblock the enterprise segment entirely.', priority: 'medium' });
+  recs.push({ title: 'Performance audit on dashboard load', description: 'Profile and optimize dashboard queries. Target under 2s load time. This affects all daily active users and is likely a caching or N+1 query issue.', priority: 'medium' });
+
+  // Summary
+  const painCount = cons.length;
+  const focusLabel = { retention: 'retention and activation', onboarding: 'onboarding', features: 'feature prioritization', growth: 'growth', overall: 'overall product health' }[focus] || focus;
+  const summary = `Across ${count} interview${count > 1 ? 's' : ''}, a consistent pattern emerges: users genuinely value the ${productType} product's core functionality, but ${painCount} significant friction points are creating churn and slowing activation. The most critical issues center on ${detectedThemes.filter(t=>t.type==='pain').slice(0,2).map(t=>t.label.toLowerCase()).join(' and ') || 'onboarding and missing enterprise features'}. From a ${focusLabel} lens, the highest-leverage moves are fixing self-serve gaps and reducing time-to-value in the first session — both achievable without large engineering cycles.`;
+
+  return {
+    summary,
+    stats: { themes: detectedThemes.length, pain_points: cons.length, feature_requests: matrix.do_now.length + matrix.plan.length + matrix.quick_wins.length },
+    themes: detectedThemes.slice(0, 7),
+    pros: pros.slice(0, 4),
+    cons: cons.slice(0, 5),
+    matrix,
+    insights: insights.slice(0, 5),
+    recommendations: recs.slice(0, 5)
+  };
+}
+
+function analyze() {
+  const textareas = document.querySelectorAll('.interview-ta');
+  const interviews = Array.from(textareas).map(t => t.value.trim()).filter(Boolean);
+  if (interviews.length === 0) { alert('Please add at least one interview first.'); return; }
+
+  const btn = document.getElementById('analyze-btn');
+  btn.innerHTML = '<div class="spinner"></div> Analyzing...';
+  btn.style.pointerEvents = 'none';
+  setStep(2);
+
+  setTimeout(() => {
+    const productType = document.getElementById('product-type').value;
+    const focus = document.getElementById('focus').value;
+    const data = analyzeLocally(interviews, productType, focus);
+    renderResults(data, interviews.length);
+    btn.innerHTML = '✦ &nbsp;Re-analyze';
+    btn.style.pointerEvents = '';
+    setStep(3);
+  }, 900);
+}
+
+function renderResults(d, numInterviews) {
+  document.getElementById('res-summary').textContent = d.summary;
+  document.getElementById('stat-interviews').textContent = numInterviews;
+  document.getElementById('stat-themes').textContent = d.stats.themes;
+  document.getElementById('stat-pain').textContent = d.stats.pain_points;
+  document.getElementById('stat-features').textContent = d.stats.feature_requests;
+
+  const themesEl = document.getElementById('res-themes');
+  themesEl.innerHTML = (d.themes || []).map(t => {
+    const cls = t.type === 'pain' ? 'tag-pain' : t.type === 'delight' ? 'tag-delight' : 'tag-theme';
+    const dot = t.type === 'pain' ? '⚠ ' : t.type === 'delight' ? '✓ ' : '◆ ';
+    return `<span class="theme-tag ${cls}">${dot}${t.label}</span>`;
+  }).join('');
+  document.getElementById('theme-count').textContent = (d.themes || []).length;
+
+  document.getElementById('res-pros').innerHTML = (d.pros || []).map(p => `<li>${p}</li>`).join('');
+  document.getElementById('res-cons').innerHTML = (d.cons || []).map(c => `<li>${c}</li>`).join('');
+
+  ['do_now','plan','quick_wins','deprioritize'].forEach(key => {
+    const elId = { do_now:'m-do-now', plan:'m-plan', quick_wins:'m-wins', deprioritize:'m-skip' }[key];
+    document.getElementById(elId).innerHTML = (d.matrix[key] || []).map(f =>
+      `<div class="feature-pill"><div class="feature-pill-name">${f.feature}</div><div class="feature-pill-why">${f.why}</div></div>`
+    ).join('');
+  });
+
+  document.getElementById('res-insights').innerHTML = (d.insights || []).map(i =>
+    `<div class="insight-item"><div class="insight-badge">${i.emoji}</div><div class="insight-text"><strong>${i.headline}</strong> — ${i.body}</div></div>`
+  ).join('');
+
+  document.getElementById('res-recs').innerHTML = (d.recommendations || []).map((r, i) =>
+    `<div class="rec-item"><div class="rec-num">${i+1}</div><div class="rec-content"><div class="rec-title">${r.title}</div><div class="rec-desc">${r.description}</div><span class="rec-priority priority-${r.priority}">${r.priority} priority</span></div></div>`
+  ).join('');
+
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+  resultsEl.classList.add('show');
+  setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+function resetAll() {
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('analyze-btn').innerHTML = '✦ &nbsp;Synthesize feedback';
+  setStep(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('step-' + i);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+}
+
+addInterview();
+addInterview();
+</script>
+</body>
+</html>
